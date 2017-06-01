@@ -168,9 +168,32 @@ double** inv_hessian2(double x, double y)
 void NewtonsMethod(int k, double g_x, double g_y, int fn, FILE* file)
 {
 	fprintf(file, "Newton's Method:\n\n");
-	fprintf(file, "k\t\tx^(k)\n");
+	fprintf(file, "k\t\tx^(i)\t\tf(x^(i))\n");
 
-	// code
+	double **ih; // inverse hessian
+	double *df;
+
+	if (fn == 1)
+	{
+		ih = inv_hessian1(g_x, g_y);
+		df = gradient1(g_x, g_y);
+	}
+	else if (fn == 2)
+	{
+		ih = inv_hessian2(g_x, g_y);
+		df = gradient2(g_x, g_y);
+	}
+
+	double xi[] = { g_x, g_y };
+
+	for (int i = 0; i < k; ++i)
+	{
+		fprintf(file, "%d\t\t", (i+1));
+		fprintf(file, "(%lf, %lf)\t\t", xi[0], xi[1]);
+		double s[] = { (ih[0][0] * df[0] + ih[0][1] * df[1]), (ih[1][0] * df[0] + ih[1][1] * df[1]) };
+		xi[0] = xi[0] - s[0];
+		xi[1] = xi[1] - s[1];
+	}
 
 	fprintf(file, "\n");
 }
@@ -199,6 +222,9 @@ void Project(int k, double guess_x, double guess_y, int function, int method)
 
 int main()
 {
+	Project(20, 2, 1, 1, 1);
+
+	Project(20, 0.2, 0.4, 2, 1);
 
 	return 0;
 }
