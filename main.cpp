@@ -47,42 +47,6 @@ double df1yy(double x, double y)
 	return 12 * pow(y, 2);
 }
 
-double* gradient1(double x, double y)
-{
-	double answer[] = { df1x(x, y), df1y(x, y) };
-	return answer;
-}
-
-double** hessian1(double x, double y)
-{
-	double** answer = new double*[2];
-	for (int i = 0; i < 2; ++i)
-		answer[i] = new double[2];
-
-	answer[0][0] = df1xx(x, y);
-	answer[0][1] = df1yx(x, y);
-	answer[1][0] = df1xy(x, y); 
-	answer[1][1] = df1yy(x, y);
-
-	return answer;
-}
-
-double** inv_hessian1(double x, double y)
-{
-	double** answer = new double*[2];
-	for (int i = 0; i < 2; ++i)
-		answer[i] = new double[2];
-
-	double det = 1 / ((df1xx(x, y)*df1yy(x, y)) - (df1yx(x, y)*df1xy(x, y)));
-
-	answer[0][0] = det * df1yy(x, y);
-	answer[0][1] = (-1) * det * df1yx(x, y);
-	answer[1][0] = (-1) * det * df1xy(x, y);
-	answer[1][1] = det * df1xx(x, y);
-
-	return answer;
-}
-
 // END FUNCTION 1 IMPLEMENTATIONS
 
 // BEGIN FUNCTION 2 IMPLEMENTATIONS
@@ -128,64 +92,45 @@ double df2yy(double x, double y)
 	return (2 * pow(E, ((-1)*pow(x, 2) - pow(y, 2))) - 4 * pow(y, 2)*pow(E, ((-1)*pow(x, 2) - pow(y, 2))));
 }
 
-double* gradient2(double x, double y)
-{
-	double answer[] = { df2x(x, y), df2y(x, y) };
-	return answer;
-}
-
-double** hessian2(double x, double y)
-{
-	double** answer = new double*[2];
-	for (int i = 0; i < 2; ++i)
-		answer[i] = new double[2];
-
-	answer[0][0] = df2xx(x, y);
-	answer[0][1] = df2yx(x, y);
-	answer[1][0] = df2xy(x, y);
-	answer[1][1] = df2yy(x, y);
-
-	return answer;
-}
-
-double** inv_hessian2(double x, double y)
-{
-	double** answer = new double*[2];
-	for (int i = 0; i < 2; ++i)
-		answer[i] = new double[2];
-
-	double det = 1 / ((df2xx(x, y)*df2yy(x, y)) - (df2yx(x, y)*df2xy(x, y)));
-
-	answer[0][0] = det * df2yy(x, y);
-	answer[0][1] = (-1) * det * df2yx(x, y);
-	answer[1][0] = (-1) * det * df2xy(x, y);
-	answer[1][1] = det * df2xx(x, y);
-
-	return answer;
-}
-
 // END FUNCTION 2 IMPLEMENTATIONS
 
 void NewtonsMethod(int k, double g_x, double g_y, int fn, FILE* file)
 {
-	fprintf(file, "Newton's Method:\n\n");
-	fprintf(file, "k\t\tx^(i)\t\tf(x^(i))\n");
+	fprintf(file, "Newton's Method (Function %d):\n\n", fn);
+	fprintf(file, "k\t\tx^(i)\t\t\t\tf(x^(i))\n");
 
-	double **ih; // inverse hessian
-	double *df;
+	double xi[] = { g_x, g_y };
+
+	// allocate memory for inverse hessian and derivative of the function (gradient)
+	double **ih = new double*[2];
+	for (int i = 0; i < 2; ++i)
+		ih[i] = new double[2];
+
+	double *df = new double[2];
+	double det = 0;
+
+	// fill in the numbers
 
 	if (fn == 1)
 	{
-		ih = inv_hessian1(g_x, g_y);
-		df = gradient1(g_x, g_y);
+		df[0] = df1x(xi[0], xi[1]);
+		df[1] = df1y(xi[0], xi[1]);
+		det = 1 / ((df1xx(xi[0], xi[1])*df1yy(xi[0], xi[1])) - (df1yx(xi[0], xi[1])*df1xy(xi[0], xi[1])));
+		ih[0][0] = det * df1yy(xi[0], xi[1]);
+		ih[0][1] = (-1) * det * df1yx(xi[0], xi[1]);
+		ih[1][0] = (-1) * det * df1xy(xi[0], xi[1]);
+		ih[1][1] = det * df1xx(xi[0], xi[1]);
 	}
 	else if (fn == 2)
 	{
-		ih = inv_hessian2(g_x, g_y);
-		df = gradient2(g_x, g_y);
+		df[0] = df2x(xi[0], xi[1]);
+		df[1] = df2y(xi[0], xi[1]);
+		det = 1 / ((df2xx(xi[0], xi[1])*df2yy(xi[0], xi[1])) - (df2yx(xi[0], xi[1])*df2xy(xi[0], xi[1])));
+		ih[0][0] = det * df2yy(xi[0], xi[1]);
+		ih[0][1] = (-1) * det * df2yx(xi[0], xi[1]);
+		ih[1][0] = (-1) * det * df2xy(xi[0], xi[1]);
+		ih[1][1] = det * df2xx(xi[0], xi[1]);
 	}
-
-	double xi[] = { g_x, g_y };
 
 	for (int i = 0; i < k; ++i)
 	{
@@ -200,9 +145,35 @@ void NewtonsMethod(int k, double g_x, double g_y, int fn, FILE* file)
 		double s[] = { (ih[0][0] * df[0] + ih[0][1] * df[1]), (ih[1][0] * df[0] + ih[1][1] * df[1]) };
 		xi[0] = xi[0] - s[0];
 		xi[1] = xi[1] - s[1];
+
+		// recalculate gradient and hessian
+		if (fn == 1)
+		{
+			df[0] = df1x(xi[0], xi[1]);
+			df[1] = df1y(xi[0], xi[1]);
+			det = 1 / ((df1xx(xi[0], xi[1])*df1yy(xi[0], xi[1])) - (df1yx(xi[0], xi[1])*df1xy(xi[0], xi[1])));
+			ih[0][0] = det * df1yy(xi[0], xi[1]);
+			ih[0][1] = (-1) * det * df1yx(xi[0], xi[1]);
+			ih[1][0] = (-1) * det * df1xy(xi[0], xi[1]);
+			ih[1][1] = det * df1xx(xi[0], xi[1]);
+		}
+		else if (fn == 2)
+		{
+			df[0] = df2x(xi[0], xi[1]);
+			df[1] = df2y(xi[0], xi[1]);
+			det = 1 / ((df2xx(xi[0], xi[1])*df2yy(xi[0], xi[1])) - (df2yx(xi[0], xi[1])*df2xy(xi[0], xi[1])));
+			ih[0][0] = det * df2yy(xi[0], xi[1]);
+			ih[0][1] = (-1) * det * df2yx(xi[0], xi[1]);
+			ih[1][0] = (-1) * det * df2xy(xi[0], xi[1]);
+			ih[1][1] = det * df2xx(xi[0], xi[1]);
+		}
 	}
 
 	fprintf(file, "\n");
+
+	delete[] df;
+	for (int i = 0; i < 2; ++i)
+		delete[] ih[i];
 }
 
 void Project(int k, double guess_x, double guess_y, int function, int method)
@@ -226,7 +197,7 @@ void Project(int k, double guess_x, double guess_y, int function, int method)
 
 int main()
 {
-	Project(20, 2, 1, 1, 1);
+	Project(20, 2.0, 1.0, 1, 1);
 
 	Project(20, 0.2, 0.4, 2, 1);
 

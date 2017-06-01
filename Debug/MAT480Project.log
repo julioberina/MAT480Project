@@ -1,5 +1,3 @@
 ﻿  main.cpp
-c:\users\julio\documents\visual studio 2015\projects\mat480project\main.cpp(53): warning C4172: returning address of local variable or temporary: answer
-c:\users\julio\documents\visual studio 2015\projects\mat480project\main.cpp(134): warning C4172: returning address of local variable or temporary: answer
   MAT480Project.vcxproj -> C:\Users\Julio\documents\visual studio 2015\Projects\MAT480Project\Debug\MAT480Project.exe
   MAT480Project.vcxproj -> C:\Users\Julio\documents\visual studio 2015\Projects\MAT480Project\Debug\MAT480Project.pdb (Partial PDB)
