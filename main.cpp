@@ -289,14 +289,16 @@ void BroydensMethod(int k, double g_x, double g_y, int fn, FILE* file)
 		// recalculations
 
 		// simulate linsolve in matlab
+		double temp_df[] = { (((-1) * df[0]) + D[0][0]*xi[0] + D[0][1]*xi[1]), (((-1) * df[1]) + D[1][0]*xi[0] + D[0][1]*xi[1]) };
+		
 		detTemp = 1 / ((D[0][0] * D[1][1]) - (D[0][1] * D[1][0]));
 		Dtemp[0][0] = detTemp * D[1][1];
 		Dtemp[0][1] = (-1) * detTemp * D[0][1];
 		Dtemp[1][0] = (-1) * detTemp * D[1][0];
 		Dtemp[1][1] = detTemp * D[0][0];
 
-		s[0] = (Dtemp[0][0] * ((-1) * df[0])) + (Dtemp[0][1] * ((-1) * df[1]));
-		s[1] = (Dtemp[1][0] * ((-1) * df[0])) + (Dtemp[1][1] * ((-1) * df[1]));
+		s[0] = (Dtemp[0][0] * ((-1) * temp_df[0])) + (Dtemp[0][1] * ((-1) * temp_df[1]));
+		s[1] = (Dtemp[1][0] * ((-1) * temp_df[0])) + (Dtemp[1][1] * ((-1) * temp_df[1]));
 
 		d[0] = xi[0];
 		d[1] = xi[1];
@@ -404,6 +406,5 @@ int main()
 	// Own guesses
 	// Project(20, 1.0, 3.0, 1, 1); // [1, 3]
 	// Project(20, 0.1, 0.1, 2, 1); // [0.8, 0.9]
-	system("pause");
 	return 0;
 }
