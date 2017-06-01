@@ -243,10 +243,16 @@ void BroydensMethod(int k, double g_x, double g_y, int fn, FILE* file)
 	for (int i = 0; i < 2; ++i)
 		D[i] = new double[2];
 
+	double** Dtemp = new double*[2];
+	for (int i = 0; i < 2; ++i)
+		Dtemp[i] = new double[2];
+
+	double detTemp = 0.0;
+
 	double xi[] = { g_x, g_y };
 	double* s = new double[2];
 	double* df = new double[2];
-	double tempD11 = 0.0;
+
 
 	// vars to be used inside for loop
 	double* d = new double[2];
@@ -255,20 +261,20 @@ void BroydensMethod(int k, double g_x, double g_y, int fn, FILE* file)
 	// calculate gradient based on function
 	if (fn == 1)
 	{
-		df[0] = (-1) * df1x(xi[0], xi[1]);
-		df[1] = (-1) * df1y(xi[0], xi[1]);
+		df[0] = df1x(xi[0], xi[1]);
+		df[1] = df1y(xi[0], xi[1]);
 	}
 	else if (fn == 2)
 	{
-		df[0] = (-1) * df2x(xi[0], xi[1]);
-		df[1] = (-1) * df2y(xi[0], xi[1]);
+		df[0] = df2x(xi[0], xi[1]);
+		df[1] = df2y(xi[0], xi[1]);
 	}
 
 
-	D[0][0] = 1;
-	D[0][1] = 0;
-	D[1][0] = 0;
-	D[1][1] = 1;
+	D[0][0] = 1.0;
+	D[0][1] = 0.0;
+	D[1][0] = 0.0;
+	D[1][1] = 1.0;
 
 	for (int i = 0; i < k; ++i)
 	{
@@ -283,65 +289,51 @@ void BroydensMethod(int k, double g_x, double g_y, int fn, FILE* file)
 		// recalculations
 
 		// simulate linsolve in matlab
-		tempD11 = D[1][1] + ((-1) * (D[1][0] / D[0][0]) * D[0][1]);
-		df[1] = df[1] + ((-1) * (D[1][0] / D[0][0]) * df[0]);
-		s[1] = df[1] / tempD11;
-		s[0] = (df[0] - (s[1] * D[0][1])) / D[0][0];
+		detTemp = 1 / ((D[0][0] * D[1][1]) - (D[0][1] * D[1][0]));
+		Dtemp[0][0] = detTemp * D[1][1];
+		Dtemp[0][1] = (-1) * detTemp * D[0][1];
+		Dtemp[1][0] = (-1) * detTemp * D[1][0];
+		Dtemp[1][1] = detTemp * D[0][0];
+
+		s[0] = (Dtemp[0][0] * ((-1) * df[0])) + (Dtemp[0][1] * ((-1) * df[1]));
+		s[1] = (Dtemp[1][0] * ((-1) * df[0])) + (Dtemp[1][1] * ((-1) * df[1]));
 
 		d[0] = xi[0];
 		d[1] = xi[1];
-
-		if (fn == 1)
-		{
-			y[0] = df1x(xi[0], xi[1]);
-			y[1] = df1y(xi[0], xi[1]);
-		}
-		else if (fn == 2)
-		{
-			y[0] = df2x(xi[0], xi[1]);
-			y[1] = df2y(xi[0], xi[1]);
-		}
 
 		// go to next iteration of x
 		xi[0] = s[0] - xi[0];
 		xi[1] = s[1] - xi[1];
 
-		d[0] = xi[0] - d[0];
-		d[1] = xi[1] - d[1];
-
 		if (fn == 1)
 		{
-			y[0] = df1x(xi[0], xi[1]) - y[0];
-			y[1] = df1y(xi[0], xi[1]) - y[1];
+			y[0] = df1x(xi[0], xi[1]) - df[0];
+			y[1] = df1y(xi[0], xi[1]) - df[1];
 		}
 		else if (fn == 2)
 		{
-			y[0] = df2x(xi[0], xi[1]) - y[0];
-			y[1] = df2y(xi[0], xi[1]) - y[1];
+			y[0] = df2x(xi[0], xi[1]) - df[0];
+			y[1] = df2y(xi[0], xi[1]) - df[1];
 		}
 
-		// Temporary variables for the calculation of a new D
-		double** Dtemp = new double*[2];
-		for (int i = 0; i < 2; ++i)
-			Dtemp[i] = new double[2];
+		d[0] = xi[0] - d[0];
+		d[1] = xi[1] - d[1];
 
-		double den = 1 / (d[0] * d[0]) + (d[1] * d[1]);
+		// Temporary variables for the calculation of a new D
+
+		double den = 1 / ((d[0] * d[0]) + (d[1] * d[1]));
 		double num[] = { (y[0] - (D[0][0] * d[0] + D[0][1] * d[1])), (y[1] - (D[1][0] * d[0] + D[1][1] * d[1])) };
 
-		Dtemp[0][0] = den * num[0] * d[0];
-		Dtemp[0][1] = den * num[0] * d[1];
-		Dtemp[1][0] = den * num[1] * d[0];
-		Dtemp[1][1] = den * num[1] * d[1];
+		Dtemp[0][0] = den * (num[0] * d[0]);
+		Dtemp[0][1] = den * (num[0] * d[1]);
+		Dtemp[1][0] = den * (num[1] * d[0]);
+		Dtemp[1][1] = den * (num[1] * d[1]);
 
 		// recalculate D based on temps
 		D[0][0] = D[0][0] + Dtemp[0][0];
 		D[0][1] = D[0][1] + Dtemp[0][1];
 		D[1][0] = D[1][0] + Dtemp[1][0];
 		D[1][1] = D[1][1] + Dtemp[1][1];
-
-		// delete Dtemp
-		for (int i = 0; i < 2; ++i)
-			delete[] Dtemp[i];
 
 		// recalculate gradient
 		if (fn == 1)
@@ -364,7 +356,10 @@ void BroydensMethod(int k, double g_x, double g_y, int fn, FILE* file)
 	delete[] y;
 
 	for (int i = 0; i < 2; ++i)
+	{
 		delete[] D[i];
+		delete[] Dtemp[i];
+	}
 }
 
 void Project(int k, double guess_x, double guess_y, int function, int method)
@@ -386,6 +381,7 @@ void Project(int k, double guess_x, double guess_y, int function, int method)
 		break;
 	case 2: // Steepest Descent
 		SteepestDescent(k, guess_x, guess_y, function, oFile);
+		break;
 	case 3: // Broyden's Method
 		BroydensMethod(k, guess_x, guess_y, function, oFile);
 		break;
@@ -399,13 +395,15 @@ int main()
 {
 	Project(20, 2.0, 1.0, 1, 1);
 	Project(20, 2.0, 1.0, 1, 2);
+	Project(20, 2.0, 1.0, 1, 3);
 
 	Project(20, 0.2, 0.4, 2, 1);
 	Project(20, 0.2, 0.4, 2, 2);
+	Project(20, 0.2, 0.4, 2, 3);
 
 	// Own guesses
 	// Project(20, 1.0, 3.0, 1, 1); // [1, 3]
 	// Project(20, 0.1, 0.1, 2, 1); // [0.8, 0.9]
-
+	system("pause");
 	return 0;
 }
