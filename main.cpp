@@ -176,6 +176,64 @@ void NewtonsMethod(int k, double g_x, double g_y, int fn, FILE* file)
 		delete[] ih[i];
 }
 
+void SteepestDescent(int k, double g_x, double g_y, int fn, FILE* file)
+{
+	fprintf(file, "Steepest Descent (Function %d):\n\n", fn);
+	fprintf(file, "k\t\tx^(i)\t\t\t\tf(x^(i))\n");
+
+	double* df = new double[2];
+	double xi[] = { g_x, g_y };
+	double magnitude = 0.0;
+
+	// calculate gradient based on function
+	if (fn == 1)
+	{
+		df[0] = df1x(xi[0], xi[1]);
+		df[1] = df1y(xi[0], xi[1]);
+	}
+	else if (fn == 2)
+	{
+		df[0] = df2x(xi[0], xi[1]);
+		df[1] = df2y(xi[0], xi[1]);
+	}
+
+	for (int i = 0; i < k; ++i)
+	{
+		fprintf(file, "%d\t\t", (i + 1));
+		fprintf(file, "(%lf, %lf)\t\t", xi[0], xi[1]);
+
+		if (fn == 1)
+			fprintf(file, "%lf\n", f1(xi[0], xi[1]));
+		else if (fn == 2)
+			fprintf(file, "%lf\n", f2(xi[0], xi[1]));
+
+		xi[0] = xi[0] - 0.1*df[0];
+		xi[1] = xi[1] - 0.1*df[1];
+
+		magnitude = sqrt(pow(df[0], 2) + pow(df[1], 2));
+		if (magnitude <= 0.1)
+			break;
+		else
+		{
+			// recalculate gradient based on function
+			if (fn == 1)
+			{
+				df[0] = df1x(xi[0], xi[1]);
+				df[1] = df1y(xi[0], xi[1]);
+			}
+			else if (fn == 2)
+			{
+				df[0] = df2x(xi[0], xi[1]);
+				df[1] = df2y(xi[0], xi[1]);
+			}
+		}
+	}
+
+	fprintf(file, "\n");
+
+	delete[] df;
+}
+
 void Project(int k, double guess_x, double guess_y, int function, int method)
 {
 	FILE *oFile;
@@ -188,8 +246,15 @@ void Project(int k, double guess_x, double guess_y, int function, int method)
 	else
 		oFile = fopen("results.txt", "w");
 
-	if (method == 1) // Newton's Method
+	switch (method)
+	{
+	case 1: // Newton's Method
 		NewtonsMethod(k, guess_x, guess_y, function, oFile);
+		break;
+	case 2: // Steepest Descent
+		SteepestDescent(k, guess_x, guess_y, function, oFile);
+		break;
+	}
 
 	// Close the file after operations are done
 	fclose(oFile);
@@ -198,8 +263,14 @@ void Project(int k, double guess_x, double guess_y, int function, int method)
 int main()
 {
 	Project(20, 2.0, 1.0, 1, 1);
+	Project(20, 2.0, 1.0, 1, 2);
 
 	Project(20, 0.2, 0.4, 2, 1);
+	Project(20, 0.2, 0.4, 2, 2);
+
+	// Own guesses
+	// Project(20, 1.0, 3.0, 1, 1); // [1, 3]
+	// Project(20, 0.1, 0.1, 2, 1); // [0.8, 0.9]
 
 	return 0;
 }
