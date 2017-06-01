@@ -1,3 +1,4 @@
+#pragma warning (disable : 4996)
 #include <cmath>
 #include <cstdio>
 #define E 2.718281828
@@ -190,6 +191,12 @@ void NewtonsMethod(int k, double g_x, double g_y, int fn, FILE* file)
 	{
 		fprintf(file, "%d\t\t", (i+1));
 		fprintf(file, "(%lf, %lf)\t\t", xi[0], xi[1]);
+		
+		if (fn == 1)
+			fprintf(file, "%lf\n", f1(xi[0], xi[1]));
+		else if (fn == 2)
+			fprintf(file, "%lf\n", f2(xi[0], xi[1]));
+
 		double s[] = { (ih[0][0] * df[0] + ih[0][1] * df[1]), (ih[1][0] * df[0] + ih[1][1] * df[1]) };
 		xi[0] = xi[0] - s[0];
 		xi[1] = xi[1] - s[1];
@@ -208,10 +215,7 @@ void Project(int k, double guess_x, double guess_y, int function, int method)
 		oFile = fopen("results.txt", "a");
 	}
 	else
-	{
-		fclose(oFile);
 		oFile = fopen("results.txt", "w");
-	}
 
 	if (method == 1) // Newton's Method
 		NewtonsMethod(k, guess_x, guess_y, function, oFile);

@@ -1,7 +1,5 @@
 ﻿  main.cpp
-c:\users\julio\documents\visual studio 2015\projects\mat480project\main.cpp(205): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
-c:\users\julio\documents\visual studio 2015\projects\mat480project\main.cpp(208): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
-c:\users\julio\documents\visual studio 2015\projects\mat480project\main.cpp(213): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
+c:\users\julio\documents\visual studio 2015\projects\mat480project\main.cpp(53): warning C4172: returning address of local variable or temporary: answer
+c:\users\julio\documents\visual studio 2015\projects\mat480project\main.cpp(134): warning C4172: returning address of local variable or temporary: answer
+  MAT480Project.vcxproj -> C:\Users\Julio\documents\visual studio 2015\Projects\MAT480Project\Debug\MAT480Project.exe
+  MAT480Project.vcxproj -> C:\Users\Julio\documents\visual studio 2015\Projects\MAT480Project\Debug\MAT480Project.pdb (Partial PDB)
